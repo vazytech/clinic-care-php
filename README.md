@@ -58,7 +58,22 @@ This is the **PHP + MySQL** version of [clinic-care](https://github.com/vazytech
 
 To change a password: `php scripts/set-password.php <username>`.
 
-## Put it on cPanel hosting
+## Use it on the clinic's network (no internet needed)
+
+Everything runs on one computer, with nothing online: no hosting service and no cloud database. The fonts are bundled too.
+
+To let other computers in the clinic use it over the local network (Wi-Fi or cable):
+
+1. Start the server on all network addresses:
+   ```bash
+   php -S 0.0.0.0:8000 -t public router.php
+   ```
+2. Find this computer's local IP address: `hostname -I` on Linux, `ipconfig` on Windows. It looks like `192.168.1.20`.
+3. On the other computers, open `http://192.168.1.20:8000` in a browser.
+
+PHP's built-in server handles one request at a time, which is fine for a few users. For a whole clinic, serve the `public` folder with Apache instead (XAMPP on Windows, or `apache2` on Linux); `public/.htaccess` already has the settings it needs.
+
+## Put it on cPanel hosting (optional)
 
 1. In cPanel, open **MySQL Databases**. Create a database and a user, and add the user to the database with **All privileges**. Note the full names; cPanel adds your account name as a prefix, like `myacct_clinic`.
 2. Upload the whole project to a folder **outside** `public_html`, for example `/home/myacct/clinic-care-php/`, using **File Manager** or FTP.
