@@ -51,6 +51,13 @@ const VITAL_LIMITS = [
     'resp' => [4, 60], 'spo2' => [50, 100], 'weight' => [0.5, 300], 'height' => [30, 230],
 ];
 
+const ROLES = [
+    'admin' => 'Clinic administrator',
+    'reception' => 'Front desk',
+    'nurse' => 'Nurse',
+    'doctor' => 'Clinician',
+];
+
 const PERMISSIONS = [
     'patients.edit' => ['admin', 'reception', 'nurse', 'doctor'],
     'patients.archive' => ['admin'],

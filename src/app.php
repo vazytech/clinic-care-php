@@ -14,6 +14,7 @@ require __DIR__ . '/routes/appointments.php';
 require __DIR__ . '/routes/clinical.php';
 require __DIR__ . '/routes/billing.php';
 require __DIR__ . '/routes/team.php';
+require __DIR__ . '/routes/users.php';
 
 // Settings come from config.php (copy config.example.php) or, if that file doesn't
 // exist, from environment variables — handy on hosting platforms.
@@ -43,6 +44,7 @@ date_default_timezone_set(config()['timezone'] ?? 'Africa/Nairobi');
 const ROUTES = [
     ['GET', '#^/health$#', 'route_health', false],
     ['POST', '#^/login$#', 'login', false],
+    ['POST', '#^/signup$#', 'signup', false],
     ['POST', '#^/logout$#', 'logout', false],
     ['GET', '#^/me$#', 'route_me', true],
     ['GET', '#^/bootstrap$#', 'route_bootstrap', true],
@@ -61,6 +63,8 @@ const ROUTES = [
     ['POST', '#^/invoices/([\w-]+)/payments$#', 'route_payment', true],
     ['PUT', '#^/team/(\d+)$#', 'route_team_update', true],
     ['POST', '#^/team/(\d+)/away$#', 'route_team_away', true],
+    ['POST', '#^/users/(\d+)/approve$#', 'route_user_approve', true],
+    ['POST', '#^/users/(\d+)/reject$#', 'route_user_reject', true],
 ];
 
 // Lets a hosting platform or uptime monitor check the server and database are up.

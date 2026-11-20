@@ -26,7 +26,7 @@ function snapshot_php(array $allergies, array $vitals): array
     return [
         'visitTypes' => VISIT_TYPES, 'statuses' => STATUSES, 'sexes' => SEXES, 'payers' => PAYERS,
         'paymentMethods' => PAYMENT_METHODS, 'servicePrices' => SERVICE_PRICES, 'formulary' => FORMULARY,
-        'frequencies' => FREQUENCIES, 'vitalLimits' => VITAL_LIMITS, 'permissions' => PERMISSIONS,
+        'frequencies' => FREQUENCIES, 'vitalLimits' => VITAL_LIMITS, 'roles' => ROLES, 'permissions' => PERMISSIONS,
         'conflicts' => $conflicts, 'flags' => array_map('vital_flags', $vitals),
         'qty' => array_map(fn ($d) => prescription_qty($d, 1.5, 'TDS', 5), FORMULARY),
         'prices' => array_map('service_price', ['Follow-up · Blood pressure', 'Something else', 'Vaccination']),
@@ -41,7 +41,7 @@ for (const a of allergies) for (const d of s.FORMULARY) conflicts.push(s.allergy
 console.log(JSON.stringify({
   visitTypes: s.VISIT_TYPES, statuses: s.STATUSES, sexes: s.SEXES, payers: s.PAYERS,
   paymentMethods: s.PAYMENT_METHODS, servicePrices: s.SERVICE_PRICES, formulary: s.FORMULARY,
-  frequencies: s.FREQUENCIES, vitalLimits: s.VITAL_LIMITS, permissions: s.PERMISSIONS,
+  frequencies: s.FREQUENCIES, vitalLimits: s.VITAL_LIMITS, roles: s.ROLES, permissions: s.PERMISSIONS,
   conflicts, flags: vitals.map(s.vitalFlags),
   qty: s.FORMULARY.map(d => s.prescriptionQty(d, 1.5, 'TDS', 5)),
   prices: ['Follow-up · Blood pressure', 'Something else', 'Vaccination'].map(s.servicePrice)

@@ -17,6 +17,13 @@ This is the **PHP + MySQL** version of [clinic-care](https://github.com/vazytech
 - **Billing:** invoices are created automatically from each consultation, with partial payments, M-Pesa code checks and printable receipts.
 - **Audit log:** every sign-in and every change is recorded with who did it and when.
 
+## Staff accounts
+
+- The first accounts come from the setup command (see below).
+- New staff can click **"New staff member? Request an account"** on the sign-in screen. The request stays **pending**, with no access at all, until an administrator approves it.
+- Administrators see waiting requests in **notifications** and on the **Care team** page. There they **choose the role** (front desk, nurse, clinician or administrator) and approve, or reject the request.
+- Rejected requests can't sign in, and their username stays reserved. At most 20 requests can wait at once, to limit spam.
+
 ## Requirements
 
 - **PHP 8.1 or newer** with the `pdo_mysql` extension (standard on cPanel hosts)
@@ -39,7 +46,9 @@ This is the **PHP + MySQL** version of [clinic-care](https://github.com/vazytech
    php setup.php              # with demo patients
    php setup.php --no-demo    # without demo data, for real use
    ```
-   This prints a one-time password for each account (`alex`, `faith`, `peter`, `james`, `sarah`). Save them.
+   This prints a one-time password for each account (`alex`, `faith`, `peter`, `james`, `sarah`; `alex` is the administrator). Save them.
+
+   **Updating from an earlier version?** Run `php setup.php` again. It adds any new columns and leaves your data alone.
 
 4. **Start PHP's built-in server:**
    ```bash

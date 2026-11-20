@@ -88,14 +88,31 @@
   <div class="login-screen" id="loginScreen" hidden>
     <div class="login-card">
       <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 8v16M8 16h16"/></svg></span><span class="brand-copy"><strong>Clinic Care</strong><small>Clinic management</small></span></div>
-      <h1>Sign in</h1>
-      <p>Use the username and password from your clinic administrator.</p>
-      <form class="login-form" id="loginForm">
-        <label>Username<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
-        <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
-        <p class="login-error" id="loginError" role="alert"></p>
-        <button class="button button-primary">Sign in</button>
-      </form>
+      <div id="loginView">
+        <h1>Sign in</h1>
+        <p>Use your clinic username and password.</p>
+        <form class="login-form" id="loginForm">
+          <label>Username<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+          <p class="login-notice" id="loginNotice" role="status" hidden></p>
+          <p class="login-error" id="loginError" role="alert"></p>
+          <button class="button button-primary">Sign in</button>
+        </form>
+        <button class="auth-switch" id="showSignup" type="button">New staff member? Request an account</button>
+      </div>
+      <div id="signupView" hidden>
+        <h1>Request an account</h1>
+        <p>Request a sign-in for this clinic. An administrator will approve it and set your role before you can sign in.</p>
+        <form class="login-form" id="signupForm">
+          <label>Full name<input name="name" autocomplete="name" required></label>
+          <label>Username<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9._-]{3,40}" required></label>
+          <label>Password<input name="password" type="password" autocomplete="new-password" minlength="10" required></label>
+          <label>Confirm password<input name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required></label>
+          <p class="login-error" id="signupError" role="alert"></p>
+          <button class="button button-primary">Request account</button>
+        </form>
+        <button class="auth-switch" id="showLogin" type="button">Already have an account? Sign in</button>
+      </div>
     </div>
   </div>
 

@@ -67,7 +67,7 @@ function login(): array
     $recent = $lock && strtotime($lock['last_at']) > time() - LOCK_MINUTES * 60;
     if ($recent && $lock['failures'] >= MAX_FAILURES) throw new HttpError(429, 'Too many failed attempts. Try again in 15 minutes.');
 
-    $user = q('SELECT id, username, name, role, password_hash FROM users WHERE username = ? AND active = 1', [$username])->fetch();
+    $user = q('SELECT id, username, name, role, password_hash, status, active FROM users WHERE username = ?', [$username])->fetch();
     // Check a dummy hash for unknown users so the response time doesn't reveal which usernames exist.
     $hash = $user['password_hash'] ?? password_hash(random_bytes(12), PASSWORD_DEFAULT);
     if (!password_verify($password, $hash) || !$user) {
@@ -78,6 +78,9 @@ function login(): array
         throw new HttpError(401, 'Wrong username or password.');
     }
     q('DELETE FROM login_failures WHERE username = ?', [$username]);
+    // Only say why sign-in is blocked once the password has proved who they are.
+    if ($user['status'] === 'pending') throw new HttpError(403, 'Your account is waiting for an administrator to approve it.');
+    if ($user['status'] !== 'active' || !$user['active']) throw new HttpError(403, 'This account isn’t active. Contact your clinic administrator.');
     if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
         q('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($password, PASSWORD_DEFAULT), $user['id']]);
     }
@@ -88,8 +91,37 @@ function login(): array
     q('DELETE FROM sessions WHERE expires_at < ?', [now_str()]);   // housekeeping
     set_session_cookie($token, SESSION_HOURS * 3600);
     audit($user['id'], 'login');
-    unset($user['password_hash']);
-    return ['user' => $user];
+    return ['user' => ['id' => $user['id'], 'username' => $user['username'], 'name' => $user['name'], 'role' => $user['role']]];
+}
+
+// Anyone can request an account, but it stays "pending" — with no access at all —
+// until an administrator approves it and chooses its role (see routes/users.php).
+const MAX_PENDING = 20;
+
+function signup(): array
+{
+    $name = v_text(input('name'), 'full name', max: 120);
+    $username = strtolower(v_text(input('username'), 'username', max: 40));
+    $password = is_string(input('password')) ? input('password') : '';
+    $confirm = is_string(input('confirmPassword')) ? input('confirmPassword') : '';
+
+    if (char_length($name) < 2) throw new HttpError(400, 'Enter your full name (2–120 characters).');
+    if (!preg_match('/^[a-z0-9][a-z0-9._-]{2,39}$/', $username)) {
+        throw new HttpError(400, 'Use a username of 3–40 characters with letters, numbers, dots, underscores or hyphens.');
+    }
+    check_password_strength($password);
+    if ($password !== $confirm) throw new HttpError(400, 'Passwords do not match.');
+
+    if (q('SELECT 1 FROM users WHERE username = ?', [$username])->fetch()) throw new HttpError(409, 'That username is already taken.');
+    if ((int) q("SELECT COUNT(*) FROM users WHERE status = 'pending'")->fetchColumn() >= MAX_PENDING) {
+        throw new HttpError(429, 'There are too many account requests waiting. Ask your clinic administrator.');
+    }
+    // The role is a placeholder; the administrator picks the real one when approving.
+    q("INSERT INTO users (username, name, role, password_hash, status, active) VALUES (?, ?, 'reception', ?, 'pending', 0)",
+        [$username, $name, password_hash($password, PASSWORD_DEFAULT)]);
+    audit((int) db()->lastInsertId(), 'signup.request', 'user', $username);
+    http_response_code(201);
+    return ['pending' => true];
 }
 
 function logout(): array

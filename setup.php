@@ -33,6 +33,20 @@ const TEAM = [
     ['Grace Achieng', 'Clinical officer', '0,6'],
 ];
 
+// Changes for databases created by an earlier version. Each step checks first, so
+// running setup again is always safe.
+function migrate(): void
+{
+    $hasColumn = fn (string $table, string $column) => (bool) q(
+        'SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?',
+        [$table, $column]
+    )->fetchColumn();
+    if (!$hasColumn('users', 'status')) {
+        db()->exec("ALTER TABLE users ADD COLUMN status ENUM('pending', 'active', 'rejected') NOT NULL DEFAULT 'active' AFTER active");
+        echo "Added account approval (users.status).\n";
+    }
+}
+
 function day(int $offset): string
 {
     return date('Y-m-d', strtotime("$offset days"));
@@ -103,6 +117,7 @@ try {
     // Run each CREATE statement separately (comments stripped first).
     $schema = preg_replace('/^\s*--.*$/m', '', file_get_contents(__DIR__ . '/database/schema.sql'));
     foreach (array_filter(array_map('trim', explode(';', $schema))) as $statement) db()->exec($statement);
+    migrate();
     echo "Tables are ready.\n";
 
     if ((int) db()->query('SELECT COUNT(*) FROM users')->fetchColumn() > 0) {

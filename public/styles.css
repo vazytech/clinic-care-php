@@ -414,8 +414,8 @@ button.appt-status:hover { filter: brightness(.96); }
 
 /* ---------- Sign-in ---------- */
 
-.login-screen { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: var(--bg); }
-.login-card { width: min(100%, 440px); padding: 32px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: 0 12px 40px rgba(15, 23, 42, .08); }
+.login-screen { position: fixed; inset: 0; z-index: 20; display: grid; place-items: start center; overflow-y: auto; padding: 20px; background: var(--bg); }
+.login-card { width: min(100%, 440px); margin-block: auto; padding: 32px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: 0 12px 40px rgba(15, 23, 42, .08); }
 .login-card .brand { padding: 0 0 26px; }
 .login-card h1 { font-size: 26px; }
 .login-card > p { margin: 4px 0 18px; color: var(--text-3); }
@@ -476,3 +476,11 @@ button.appt-status:hover { filter: brightness(.96); }
 .login-form input:focus { outline: 3px solid #bcd0f6; border-color: var(--primary); }
 .login-form .button { width: 100%; padding: 12px; }
 .login-error { min-height: 1.4em; margin: -4px 0 0; color: var(--red); font-size: 14px; font-weight: 500; }
+.auth-switch { width: 100%; margin-top: 12px; padding: 8px; border: 0; background: transparent; color: var(--primary); font: inherit; font-weight: 600; cursor: pointer; }
+.login-notice { margin: -4px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--teal-soft); color: var(--teal); font-size: 14px; font-weight: 500; }
+
+/* Account requests (Care team page, administrators only) */
+.requests-panel { margin-bottom: 20px; border-color: #f3d9a6; background: #fffdf8; }
+.request-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border-soft); flex-wrap: wrap; }
+.request-row .team-person { min-width: 180px; }
+.request-role { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: 14px; }

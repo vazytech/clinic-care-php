@@ -1,7 +1,7 @@
 // Clinic Care — client data layer. Loads data from the server and talks to the API.
 // Reference data and shared rules live in shared.js.
 
-let state = { patients: [], appointments: [], team: [], notes: [], vitals: [], invoices: [] };
+let state = { patients: [], appointments: [], team: [], notes: [], vitals: [], invoices: [], accountRequests: [] };
 
 // Calls the API and returns the parsed JSON. Throws an Error whose message is safe to
 // show the user; `status` is 401 when the session has expired.

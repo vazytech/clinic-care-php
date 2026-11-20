@@ -166,6 +166,9 @@ function showLogin(message = '') {
   closeModal();
   $('#loginError').textContent = message;
   $('#loginScreen').hidden = false;
+  $('#loginView').hidden = false;
+  $('#signupView').hidden = true;
+  $('#signupError').textContent = '';
   $('#loginForm [name=password]').value = '';
   setTimeout(() => $('#loginForm [name=username]').focus(), 30);
 }
@@ -180,6 +183,48 @@ async function submitLogin(e) {
     await startSession(user);
   } catch (err) {
     $('#loginError').textContent = err.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function showSignupView() {
+  $('#loginNotice').hidden = true;
+  $('#loginView').hidden = true;
+  $('#signupView').hidden = false;
+  $('#signupError').textContent = '';
+  setTimeout(() => $('#signupForm [name=name]').focus(), 30);
+}
+
+function showLoginView() {
+  $('#signupView').hidden = true;
+  $('#loginView').hidden = false;
+  $('#loginError').textContent = '';
+  $('#loginNotice').hidden = true;
+  setTimeout(() => $('#loginForm [name=username]').focus(), 30);
+}
+
+async function submitSignup(e) {
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const button = e.target.querySelector('button');
+  button.disabled = true;
+  try {
+    await api('POST', '/api/signup', {
+      name: form.get('name'),
+      username: form.get('username'),
+      password: form.get('password'),
+      confirmPassword: form.get('confirmPassword')
+    });
+    // The account waits for an administrator to approve it, so don't sign in yet.
+    const username = String(form.get('username')).trim().toLowerCase();
+    e.target.reset();
+    showLoginView();
+    $('#loginForm [name=username]').value = username;
+    $('#loginNotice').textContent = 'Request sent. You can sign in once a clinic administrator approves your account.';
+    $('#loginNotice').hidden = false;
+  } catch (err) {
+    $('#signupError').textContent = err.message;
   } finally {
     button.disabled = false;
   }
@@ -411,6 +456,9 @@ function computeAlerts() {
       alerts.push({ level: 'info', text: `${plural(owed.length, 'invoice', 'invoices')} from earlier days still outstanding (${money(total)}).`, page: 'billing' });
     }
   }
+  if (can('team.manage') && state.accountRequests.length) {
+    alerts.push({ level: 'warn', text: `${plural(state.accountRequests.length, 'account request is', 'account requests are')} waiting for approval.`, page: 'team' });
+  }
   const order = { critical: 0, warn: 1, info: 2 };
   return alerts.sort((a, b) => order[a.level] - order[b.level]);
 }
@@ -518,7 +566,7 @@ function renderPage(page) {
         <tbody id="invoiceBody"></tbody>
       </table></div>
     </div>`,
-    team: () => '<div class="notes-grid" id="teamGrid"></div>'
+    team: () => '<div id="accountRequests"></div><div class="notes-grid" id="teamGrid"></div>'
   };
 
   $('#alternatePage').innerHTML = pageHeading(kicker, label, sub) + bodies[page]();
@@ -727,7 +775,46 @@ function renderBilling() {
   $$('[data-receipt]').forEach(b => b.onclick = () => receiptDialog(b.dataset.receipt));
 }
 
+function renderAccountRequests() {
+  const requests = can('team.manage') ? state.accountRequests : [];
+  $('#accountRequests').innerHTML = requests.length ? `<section class="section-panel requests-panel">
+      <div class="panel-heading"><div><h2>Account requests</h2>
+        <p class="panel-sub">People who signed up and are waiting for access. Choose the role that matches their job before approving.</p></div></div>
+      ${requests.map(r => `<div class="request-row">
+        <span class="patient-avatar">${esc(initials(r.name))}</span>
+        <span class="team-person"><strong>${esc(r.name)}</strong><small>@${esc(r.username)} · requested ${esc(formatStamp(r.requestedAt))}</small></span>
+        <select class="request-role" data-role-for="${r.id}" aria-label="Role for ${esc(r.name)}">
+          <option value="" selected disabled>Choose role…</option>
+          ${Object.entries(ROLES).map(([value, label]) => `<option value="${value}">${esc(label)}</option>`).join('')}
+        </select>
+        <button class="button button-small" data-approve="${r.id}">Approve</button>
+        <button class="button button-small button-quiet" data-reject="${r.id}">Reject</button>
+      </div>`).join('')}
+    </section>` : '';
+
+  const request = id => state.accountRequests.find(r => String(r.id) === id);
+  $$('[data-approve]').forEach(b => b.onclick = async () => {
+    const r = request(b.dataset.approve);
+    const role = $(`[data-role-for="${r.id}"]`).value;
+    if (!role) return showToast(`Choose a role for ${r.name} first.`);
+    try {
+      await mutate('POST', `/api/users/${r.id}/approve`, { role });
+      showToast(`${r.name} approved as ${ROLES[role]}. They can sign in now.`);
+    } catch (err) {
+      handleError(err);
+    }
+  });
+  $$('[data-reject]').forEach(b => b.onclick = () => {
+    const r = request(b.dataset.reject);
+    openModal('Reject account request', `<p class="modal-copy">${esc(r.name)} (@${esc(r.username)}) won’t be able to sign in. The username stays reserved.</p>`, 'Reject', async () => {
+      await mutate('POST', `/api/users/${r.id}/reject`);
+      showToast(`${r.name}’s request was rejected.`);
+    });
+  });
+}
+
 function renderTeamPage() {
+  renderAccountRequests();
   const today = todayISO();
   const manage = can('team.manage');
   $('#teamGrid').innerHTML = state.team.map(m => {
@@ -1142,6 +1229,9 @@ async function init() {
   renderDate();
   bind();
   $('#loginForm').onsubmit = submitLogin;
+  $('#signupForm').onsubmit = submitSignup;
+  $('#showSignup').onclick = showSignupView;
+  $('#showLogin').onclick = showLoginView;
   try {
     const { user } = await api('GET', '/api/me');
     await startSession(user);

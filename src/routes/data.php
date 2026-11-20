@@ -46,7 +46,13 @@ function route_bootstrap(array $user): array
         'away' => array_column($away[$m['id']] ?? [], 'date'),
     ], q('SELECT * FROM team_members ORDER BY id')->fetchAll());
 
-    $data = ['patients' => $patients, 'appointments' => $appointments, 'team' => $team, 'vitals' => [], 'notes' => [], 'invoices' => []];
+    $data = ['patients' => $patients, 'appointments' => $appointments, 'team' => $team, 'vitals' => [], 'notes' => [], 'invoices' => [], 'accountRequests' => []];
+
+    // Administrators see account requests waiting for approval.
+    if (role_can($user['role'], 'team.manage')) {
+        $data['accountRequests'] = q("SELECT id, name, username, DATE_FORMAT(created_at, " . STAMP . ") AS requestedAt
+                                      FROM users WHERE status = 'pending' ORDER BY created_at")->fetchAll();
+    }
 
     if ($clinical) {
         $data['vitals'] = array_map(fn ($v) => [

@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS users (
   role          ENUM('admin', 'reception', 'nurse', 'doctor') NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   active        TINYINT(1)   NOT NULL DEFAULT 1,
+  -- Accounts created through sign-up start as 'pending' and can't sign in until an
+  -- administrator approves them.
+  status        ENUM('pending', 'active', 'rejected') NOT NULL DEFAULT 'active',
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
