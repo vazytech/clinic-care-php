@@ -1,0 +1,9 @@
+# Safety net: if the whole project ends up in the web folder, block private files
+# and send visitors to public/. The intended setup points the web root at public/.
+<FilesMatch "^(config\.php|config\.example\.php|setup\.php|router\.php|.*\.md|\.git.*)$">
+  Require all denied
+</FilesMatch>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^$ public/ [L]
+</IfModule>

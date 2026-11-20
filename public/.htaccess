@@ -1,0 +1,16 @@
+# Apache / cPanel settings for the public web folder.
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Send /api/... to the PHP entry point.
+  RewriteCond %{REQUEST_URI} !/api/index\.php$
+  RewriteRule ^api(/.*)?$ api/index.php [L,QSA]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "same-origin"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-ancestors 'none'"
+</IfModule>
